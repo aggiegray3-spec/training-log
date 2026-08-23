@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Training">
+<meta name="theme-color" content="#13110D">
+<title>Training Log</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#13110D; --surface:#1C1912; --surface2:#242019; --line:#342E22; --line-soft:#241F17;
+    --text:#F3EEE1; --text-dim:#B8AF9C; --text-faint:#7C7563;
+    --lift:#6FA0BE; --lift-dim:#2B3D48; --core:#C9A15A; --core-dim:#443622;
+    --baseball:#C1543F; --baseball-dim:#442822; --basketball:#E08A2E; --basketball-dim:#493321;
+    --plyo:#D7BC4C; --plyo-dim:#453D22; --recovery:#7FA07A; --recovery-dim:#2B3B29;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);overscroll-behavior-y:none}
+  body{font-family:'Inter',sans-serif;color:var(--text);padding-bottom:56px;min-height:100vh;-webkit-font-smoothing:antialiased}
+  .status-spacer{height:env(safe-area-inset-top)}
+  header.top{padding:18px 20px 14px;position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 82%,transparent)}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--plyo)}
+  h1.title{font-family:'Oswald',sans-serif;font-weight:600;font-size:26px;letter-spacing:.01em;margin:0;text-transform:uppercase}
+  .week-strip{display:flex;gap:8px;padding:14px 20px 4px;overflow-x:auto;scrollbar-width:none}
+  .week-strip::-webkit-scrollbar{display:none}
+  .day-chip{flex:0 0 auto;width:46px;padding:10px 0 8px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform .15s ease,background .15s ease,border-color .15s ease}
+  .day-chip:active{transform:scale(.94)}
+  .day-chip .dow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--text-faint);text-transform:uppercase}
+  .day-chip .num{font-family:'Oswald',sans-serif;font-size:16px;font-weight:500;color:var(--text-dim)}
+  .day-chip .marks{display:flex;gap:3px;height:5px}
+  .day-chip .marks span{width:5px;height:5px;border-radius:50%}
+  .day-chip.selected{background:var(--surface2);border-color:var(--line)}
+  .day-chip.selected .num{color:var(--text)}
+  .day-chip.is-today{border-color:var(--plyo)}
+  .day-chip.is-today .dow{color:var(--plyo)}
+  .hero{margin:18px 20px 6px;padding:20px 20px 22px;border-radius:20px;background:var(--surface);border:1px solid var(--line-soft);position:relative;overflow:hidden}
+  .hero-bar{position:absolute;left:0;top:0;bottom:0;width:5px}
+  .hero-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px}
+  .hero-day{font-family:'Oswald',sans-serif;font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.01em;line-height:1.15;margin-bottom:10px}
+  .hero-tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:5px 10px 5px 8px;border-radius:20px;display:flex;align-items:center;gap:6px}
+  .tag svg{width:13px;height:13px;flex:0 0 auto}
+  .sections{padding:6px 20px 10px;display:flex;flex-direction:column;gap:10px}
+  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:16px;overflow:hidden}
+  .card-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;position:relative}
+  .card-accent{width:4px;align-self:stretch;border-radius:3px;flex:0 0 auto;position:absolute;left:0;top:8px;bottom:8px}
+  .card-head-inner{display:flex;align-items:center;gap:12px;padding-left:10px;flex:1;min-width:0}
+  .icon-wrap{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .icon-wrap svg{width:17px;height:17px}
+  .card-titles{flex:1;min-width:0}
+  .card-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;text-transform:uppercase;letter-spacing:.01em}
+  .card-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);margin-top:1px}
+  .chevron{width:18px;height:18px;color:var(--text-faint);transition:transform .25s ease;flex:0 0 auto}
+  .card.open .chevron{transform:rotate(180deg)}
+  .card-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .card-body-inner{padding:2px 18px 16px 42px;display:flex;flex-direction:column;gap:9px}
+  .ex-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:9px;border-bottom:1px solid var(--line-soft)}
+  .ex-row:last-child{border-bottom:none;padding-bottom:0}
+  .ex-name{font-size:13.5px;color:var(--text);line-height:1.35}
+  .ex-scheme{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);white-space:nowrap;flex:0 0 auto}
+  .ex-bullet{font-size:13.5px;color:var(--text-dim);line-height:1.4}
+  .recovery-note{padding:14px 18px 18px 42px;font-size:13.5px;color:var(--text-dim);line-height:1.6}
+  footer.hint{text-align:center;padding:18px 30px 4px;font-size:11.5px;color:var(--text-faint);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="status-spacer"></div>
+<header class="top">
+  <div class="eyebrow"><span class="dot"></span><span id="week-label">This week</span></div>
+  <h1 class="title">Training Log</h1>
+</header>
+<div class="week-strip" id="week-strip"></div>
+<div class="hero" id="hero">
+  <div class="hero-bar" id="hero-bar"></div>
+  <div class="hero-label" id="hero-label"></div>
+  <div class="hero-day" id="hero-day"></div>
+  <div class="hero-tags" id="hero-tags"></div>
+</div>
+<div class="sections" id="sections"></div>
+<footer class="hint">Tap a day above to switch. Tap any block to see the sets, reps, and drills.</footer>
+
+<script>
+const ICONS = {
+  lift:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><rect x="3.2" y="3.2" width="3.6" height="3.6" rx="1"/><rect x="17.2" y="17.2" width="3.6" height="3.6" rx="1"/><path d="M4.8 9.6 9.6 4.8M14.4 19.2l4.8-4.8"/></svg>',
+  core:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"/><path d="M12 3.8v16.4M3.8 12h16.4"/></svg>',
+  baseball:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.4"/><path d="M6.2 6.8c1.6 1.6 2.4 3.4 2.4 5.2s-.8 3.6-2.4 5.2M17.8 6.8c-1.6 1.6-2.4 3.4-2.4 5.2s.8 3.6 2.4 5.2"/></svg>',
+  basketball:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8M12 3.6v16.8M6 5.6c2 2 3 4.2 3 6.4s-1 4.4-3 6.4M18 5.6c-2 2-3 4.2-3 6.4s-1 4.4-3 6.4"/></svg>',
+  plyo:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
+  recovery:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.4 8.4 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></svg>'
+};
+const CAT_META = {
+  lift:{label:'Lift',col:'--lift',dim:'--lift-dim'}, core:{label:'Core',col:'--core',dim:'--core-dim'},
+  baseball:{label:'Baseball',col:'--baseball',dim:'--baseball-dim'}, basketball:{label:'Basketball',col:'--basketball',dim:'--basketball-dim'},
+  plyo:{label:'Speed',col:'--plyo',dim:'--plyo-dim'}, recovery:{label:'Recovery',col:'--recovery',dim:'--recovery-dim'}
+};
+function block(cat,name,items){return{cat,name,items}}
+function ex(name,scheme){return{type:'ex',name,scheme}}
+function bullet(text){return{type:'bullet',text}}
+
+const WEEK = [
+{dow:'MON',full:'Monday',tagline:'Upper + core + baseball',cats:['lift','core','baseball'],blocks:[
+ block('lift','Upper body',[ex('Bench press','3×6–8'),ex('Chest-supported row','3×6–8'),ex('Pec deck','2×8–12'),ex('Lat pulldown','2×8–12'),ex('Bicep curls','3×8–12'),ex('Tricep pushdowns','3×10–12'),ex('Forearm curls','2–3×12–15')]),
+ block('core','Core',[ex('Leg raises','2–3 sets'),ex('Dead bugs','2–3 sets'),ex('Cable crunches','2–3 sets'),ex('Pallof press','2–3 sets')]),
+ block('baseball','Baseball — hitting',[bullet('Tee work'),bullet('Front toss'),bullet('Situational swings'),bullet('Mechanics / quality focus')])
+]},
+{dow:'TUE',full:'Tuesday',tagline:'Lower + plyos + basketball',cats:['plyo','lift','basketball'],blocks:[
+ block('plyo','Plyometrics',[ex('Pogo jumps','3×10'),ex('Vertical jumps','3×4'),ex('Broad jumps','3×3'),ex('Lateral line hops','3×10s/side'),ex('Falling starts','3×10–15yd')]),
+ block('lift','Lower body',[ex('Leg press','3×6–8'),ex('Hamstring curl','3×8–12'),ex('Leg extension','3×8–12'),ex('Bulgarian split squat','3×8/leg'),ex('Glute bridge','3×10'),ex('DB calf raises','3×15')]),
+ block('basketball','Basketball',[bullet('Ball handling'),bullet('Shooting'),bullet('Finishing'),bullet('Game-speed movement')])
+]},
+{dow:'WED',full:'Wednesday',tagline:'Recovery',cats:['recovery'],blocks:[
+ block('recovery','Recovery',[bullet('20–40 minute easy walk'),bullet('Light mobility / stretching'),bullet('Recover'),bullet('Get plenty of sleep')])
+],recoveryNote:'No lifting or sports today.'},
+{dow:'THU',full:'Thursday',tagline:'Upper + core + basketball + baseball',cats:['lift','core','basketball','baseball'],blocks:[
+ block('lift','Upper body',[ex('Bench press','3×6–8'),ex('Chest-supported row','3×6–8'),ex('Pec deck','2×8–12'),ex('Lat pulldown','2×8–12'),ex('Bicep curls','3×8–12'),ex('Tricep pushdowns','3×10–12'),ex('Forearm curls','2–3×12–15')]),
+ block('core','Core',[ex('Leg raises','2–3 sets'),ex('Dead bugs','2–3 sets'),ex('Cable crunches','2–3 sets'),ex('Pallof press','2–3 sets')]),
+ block('basketball','Basketball',[bullet('Ball handling'),bullet('Shooting'),bullet('Finishing'),bullet('Game-speed work')]),
+ block('baseball','Baseball — hitting',[bullet('Tee / front toss'),bullet('Live or game-speed hitting'),bullet('Situational work')])
+]},
+{dow:'FRI',full:'Friday',tagline:'Sprints + lower + baseball',cats:['plyo','lift','baseball'],blocks:[
+ block('plyo','Sprinting',[ex('Acceleration','4×10yd'),ex('Acceleration','3×20yd'),bullet('Full recovery between sprints')]),
+ block('lift','Lower body',[ex('Leg press','3×8–10'),ex('Hamstring curl','3×10–12'),ex('Leg extension','2–3×10–15'),ex('Bulgarian split squat','2×8/leg'),ex('Glute bridge','3×10–12'),ex('DB calf raises','3×12–15')]),
+ block('baseball','Baseball — hitting',[bullet('Tee work'),bullet('Front toss'),bullet('Situational / game-focused swings')])
+]},
+{dow:'SAT',full:'Saturday',tagline:'Upper + core + basketball + baseball',cats:['lift','core','basketball','baseball'],blocks:[
+ block('lift','Upper body',[ex('Bench press','3×6–8'),ex('Chest-supported row','3×6–8'),ex('Pec deck','2×10–12'),ex('Lat pulldown','2×10–12'),ex('Bicep curls','2–3×10–12'),ex('Tricep pushdowns','2–3×10–12'),ex('Forearm curls','2×12–15')]),
+ block('core','Core',[ex('Leg raises','2–3 sets'),ex('Dead bugs','2–3 sets'),ex('Cable crunches','2–3 sets'),ex('Pallof press','2–3 sets')]),
+ block('basketball','Basketball',[bullet('Ball handling'),bullet('Shooting'),bullet('Finishing'),bullet('Game-speed / competitive work')]),
+ block('baseball','Baseball — hitting',[bullet('Tee work'),bullet('Front toss'),bullet('Live / game-speed hitting'),bullet('Situational swings')])
+]},
+{dow:'SUN',full:'Sunday',tagline:'Lower + plyos + recovery',cats:['plyo','lift','recovery'],blocks:[
+ block('plyo','Plyometrics',[ex('Pogo jumps','3×10'),ex('Vertical jumps','3×4'),ex('Broad jumps','3×3'),ex('Lateral line hops','3×10s/side'),ex('Falling starts','3×10–15yd')]),
+ block('lift','Lower body',[ex('Leg press','2–3×10–12'),ex('Hamstring curl','3×10–15'),ex('Leg extension','2×12–15'),ex('Bulgarian split squat','2×8–10/leg'),ex('Glute bridge','2–3×10–15'),ex('DB calf raises','3×15')]),
+ block('recovery','Recovery',[ex('Easy walk','20–40 min'),bullet('Mobility / stretching')])
+],recoveryNote:'No basketball. No baseball.'}
+];
+
+let selected = new Date().getDay()===0 ? 6 : new Date().getDay()-1;
+const todayIdx=selected;
+
+function buildWeekStrip(){
+ const strip=document.getElementById('week-strip'); strip.innerHTML='';
+ WEEK.forEach((d,i)=>{
+  const chip=document.createElement('div');
+  chip.className='day-chip'+(i===selected?' selected':'')+(i===todayIdx?' is-today':'');
+  const marks=d.cats.map(c=>`<span style="background:var(${CAT_META[c].col})"></span>`).join('');
+  chip.innerHTML=`<div class="dow">${d.dow}</div><div class="num">${i+1}</div><div class="marks">${marks}</div>`;
+  chip.addEventListener('click',()=>{selected=i;render()}); strip.appendChild(chip);
+ });
+}
+function buildHero(){
+ const d=WEEK[selected],primaryCat=d.cats[0],meta=CAT_META[primaryCat];
+ document.getElementById('hero-bar').style.background=`var(${meta.col})`;
+ document.getElementById('hero-label').textContent=(selected===todayIdx?'Today · ':'')+d.full;
+ document.getElementById('hero-day').textContent=d.tagline;
+ document.getElementById('hero-tags').innerHTML=d.cats.map(c=>{
+  const m=CAT_META[c]; return `<span class="tag" style="background:var(${m.dim});color:var(${m.col})">${ICONS[c]}${m.label}</span>`;
+ }).join('');
+}
+function buildSections(){
+ const wrap=document.getElementById('sections'); wrap.innerHTML=''; const d=WEEK[selected];
+ d.blocks.forEach((b,i)=>{
+  const meta=CAT_META[b.cat],card=document.createElement('div'); card.className='card';
+  const isRecovery=b.cat==='recovery',countLabel=isRecovery?'Rest day':`${b.items.length} item${b.items.length===1?'':'s'}`;
+  const bodyContent=isRecovery&&d.recoveryNote
+   ?`<div class="recovery-note">${d.recoveryNote}<br><br>${b.items.map(it=>`&middot; ${it.text||it.name}`).join('<br>')}</div>`
+   :`<div class="card-body-inner">${b.items.map(it=>it.type==='ex'?`<div class="ex-row"><span class="ex-name">${it.name}</span><span class="ex-scheme">${it.scheme}</span></div>`:`<div class="ex-row"><span class="ex-bullet">${it.text}</span></div>`).join('')}</div>`;
+  card.innerHTML=`<div class="card-head"><div class="card-accent" style="background:var(${meta.col})"></div><div class="card-head-inner"><div class="icon-wrap" style="background:var(${meta.dim});color:var(${meta.col})">${ICONS[b.cat]}</div><div class="card-titles"><div class="card-name">${b.name}</div><div class="card-meta">${countLabel}</div></div><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div></div><div class="card-body">${bodyContent}</div>`;
+  const head=card.querySelector('.card-head'),body=card.querySelector('.card-body');
+  head.addEventListener('click',()=>{
+   const isOpen=card.classList.contains('open');
+   wrap.querySelectorAll('.card.open').forEach(c=>{if(c!==card){c.classList.remove('open');c.querySelector('.card-body').style.maxHeight=null}});
+   if(isOpen){card.classList.remove('open');body.style.maxHeight=null}
+   else{card.classList.add('open');body.style.maxHeight=body.scrollHeight+'px'}
+  });
+  wrap.appendChild(card);
+  if(i===0&&selected===todayIdx)requestAnimationFrame(()=>head.click());
+ });
+}
+function render(){buildWeekStrip();buildHero();buildSections()}
+render();
+
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.error));
+}
+</script>
+</body>
+</html>
