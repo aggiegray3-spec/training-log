@@ -1,0 +1,1 @@
+Training Log v2 — upload the five app files to the root of your GitHub Pages repository. The app saves checklist history in the browser using localStorage and includes a monthly calendar, completion percentage, and best streak. Baseball and basketball tracking are removed.
